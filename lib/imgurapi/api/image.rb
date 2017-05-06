@@ -10,11 +10,15 @@ module Imgurapi
       end
 
       # https://api.imgur.com/endpoints/image#image-upload
-      def image_upload(local_file)
-        if local_file.kind_of? String
-          file = File.open(local_file, 'rb')
-        elsif local_file.respond_to? :read
-          file = local_file
+      def image_upload(local_file_or_url)
+        if local_file_or_url.kind_of? String
+          if local_file_or_url.downcase.start_with?('http://', 'https://', 'ftp://')
+            return Imgurapi::Image.new communication.call(:post, 'image', image: local_file_or_url)
+          end
+
+          file = File.open(local_file_or_url, 'rb')
+        elsif local_file_or_url.respond_to? :read
+          file = local_file_or_url
         else
           raise 'Must provide a File or file path'
         end
